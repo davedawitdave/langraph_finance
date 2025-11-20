@@ -1,86 +1,94 @@
-Finance-LLM LangGraph Workflow
+# **Finance-LLM LangGraph Workflow**
 
-A modular, LLM-driven financial analytics engine powered by LangGraph + Gemini.
+## **Project Overview**
 
-🧩 Overview
+This project implements a stateful, modular financial analytics engine built using **LangGraph** for workflow orchestration and the **Gemini API** for intent detection, grounding, and final synthesis.  
+Its purpose is to take complex financial or crypto-related user queries and intelligently route them through multiple computational stages—data loading, statistical analysis, visualization generation—before producing a grounded, high-quality academic or investment-focused answer.
 
-This project implements a stateful LangGraph pipeline that processes financial and cryptocurrency queries using:
+---
 
-Dynamic routing
+## **Objectives**
 
-Intent extraction
+- **Dynamic Routing:** Execute different workflow paths depending on query intent (simple, asset-specific, comparison, visual).
+- **Statistical Analysis:** Use mock BTC/ETH data to compute volatility, average price, and price ranges.
+- **Visualization Descriptions:** Generate mock chart artifacts and textual summaries for LLM-assisted reasoning.
+- **Gemini-Optimized Synthesis:** Feed clean, structured artifacts (stats, visuals, system prompts) into `gemini-2.5-flash-preview-09-2025` for accurate final outputs.
 
-BTC/ETH statistical analysis
+---
 
-Comparison workflows
+## **Tasks**
 
-Visualization-aware reasoning
+### **Task 1 – Intent Detection & Mock Data Loading (Node 1)**  
+**File:** `fetch_data.py`
 
-Gemini API synthesis
+- **Intent Extraction:** Classify query as  
+  *Simple*, *Single Asset*, *Comparison*, or *Visual Request*.  
+- **Asset Identification:** Detect crypto assets mentioned (BTC, ETH, both).  
+- **Mock Data Loading:** Load pre-generated price data into the shared LangGraph state.
 
-A single user prompt is enough — the workflow decides whether to:
+---
 
-Provide a conceptual academic answer
+### **Task 2 – Statistical Transformation (Node 2)**  
+**File:** `transform.py`
 
-Compute cryptocurrency statistics
+- Compute:
+  - Average price  
+  - Min & max price  
+  - Volatility percentage (`std / mean * 100`)  
+- Store the computed metrics in the LangGraph state for downstream processing.
 
-Compare BTC vs ETH
+---
 
-Generate a visualization description
+### **Task 3 – Visualization Artifact Generation (Node 3)**  
+**File:** `visualize.py`
 
-Or combine all of the above
+- Produce a **mock base64 chart** for single-asset or comparison queries.
+- Create a **text description** of the visual artifact to help the LLM reason over it during final synthesis.
 
-Your notebook stays minimal, while all logic lives inside src/.
+---
 
-📁 Project Structure
+### **Task 4 – Final LLM Synthesis (Node 4)**  
+**File:** `model.py`
+
+- **Simple queries:** answer using Gemini + optional Google Search grounding.
+- **Asset analysis or comparison:** integrate:
+  - Statistical metrics  
+  - Visual descriptions  
+  - System prompt  
+- Output a clean, academic, or investor-oriented final response.
+
+---
+## 2. Intelligent Routing Breakdown
+
+| Query Type             | Example                          | Workflow Path                                  |
+| ---------------------- | -------------------------------- | ---------------------------------------------- |
+| **Simple Question**    | "Explain crypto volatility"      | fetch_data → model_api                         |
+| **Single Asset Query** | "Analyze BTC last week"          | fetch_data → transform → model_api             |
+| **Comparison Query**   | "Compare BTC and ETH volatility" | fetch_data → transform → visualize → model_api |
+| **Visual Request**     | "Show me a visual of BTC risk"   | fetch_data → visualize → model_api             |
+
 src/
  ├─ memory/
- │    └─ state.py                # Shared LangGraph state model
+ │    └─ state.py                # Shared LangGraph state model (FinanceState)
  │
  ├─ nodes/
- │    ├─ fetch_data.py           # Node 1 → intent detection + mock data
- │    ├─ transform.py            # Node 2 → compute BTC/ETH stats
- │    └─ visualize.py            # Node 3 → visual artifact description
+ │    ├─ fetch_data.py           # Task 1: Intent Detection
+ │    ├─ transform.py            # Task 2: Statistical Calculation
+ │    └─ visualize.py            # Task 3: Visual Artifact Description
  │
  ├─ graph/
- │    ├─ model.py                # Node 4 → Gemini API caller
+ │    ├─ model.py                # Task 4: Final LLM Synthesis
  │    └─ graph_definition.py     # Routers + workflow builder
  │
 notebooks/
- └─ finance_workflow.ipynb       # Minimal notebook interface
+ └─ finance_workflow.ipynb       # Minimal usage interface
 
-⚡ Features
-✔ Intelligent Routing
 
-The system auto-detects whether the query is:
+## **Methods and Routing Logic**
 
-Query Type	Example	Path
-Simple Question	"Explain crypto volatility"	→ LLM
-Single Asset Query	"Analyze BTC last week"	→ Transform → LLM
-Comparison Query	"Compare BTC & ETH volatility"	→ Transform → Visual → LLM
-Visual Request	"Show me a visual of BTC risk"	→ Visual → LLM
-✔ Modular Node Architecture
-Node	File	Description
-1. fetch_node	nodes/fetch_data.py	Intent extraction + mock data
-2. transform_node	nodes/transform.py	Compute stats / percent change
-3. visualize_prices	graph/visual.py	Generate chart descriptions
-4. call_gemini_api	graph/model.py	Final LLM synthesis via Gemini
-✔ Gemini-Optimized Prompting
+### **1. LangGraph Flow Diagram**
 
-The model receives:
-
-System prompt
-
-Query
-
-Stats (if available)
-
-Visualization artifacts (if available)
-
-Then returns a clean academic answer.
-
-🔀 Workflow Diagram
-LangGraph Flow (Mermaid)
+```mermaid
 flowchart TD
 
     A[fetch_data] --> B{Router 1<br>Asset Detected?}
@@ -92,109 +100,10 @@ flowchart TD
     T --> C{Router 2<br>Compare or Visual Request?}
 
     C -- Yes --> V[visualize]
-
     C -- No --> M[model_api]
 
     V --> M
 
     M --> E((END))
 
-📦 Installation
-1. Clone repository
-git clone <repo-url>
-cd <repo-folder>
 
-2. Create virtual environment
-python -m venv venv
-source venv/bin/activate      # macOS/Linux
-venv\Scripts\activate         # Windows
-
-3. Install requirements
-pip install -r requirements.txt
-
-4. Add Gemini API key
-
-Create .env:
-
-GEMINI_API_KEY=your_key_here
-
-🧠 Usage (Notebook)
-
-Your notebook stays minimal, only 2–3 lines needed per query.
-
-Example
-from src.graph.graph_definition import run_workflow
-
-query = "What are the risks of buying BTC? Provide a visual summary."
-
-response = run_workflow(query)
-response
-
-Another example:
-queries = [
-    "Explain crypto volatility in simple terms",
-    "Give me BTC stats for the last 7 days",
-    "Compare BTC and ETH volatility visually"
-]
-
-for q in queries:
-    print(run_workflow(q))
-    print("\n" + "="*80 + "\n")
-
-🧪 Example Behaviors
-User Query	Workflow Behavior
-“What is crypto volatility?”	→ Simple conceptual answer
-“Analyze BTC 7-day trend”	→ Transform → Gemini
-“compare btc and eth volatility”	→ Transform → Visual → Gemini
-“Show me a visual of BTC risks”	→ Visual → Gemini
-“plot ethereum performance academically”	→ Visual → Gemini
-📈 Extending the System
-Add new assets
-
-Update:
-
-MOCK_PRICES
-
-fetch_node intent logic
-
-Add real APIs
-
-Replace mock datasets with REST calls (Binance, AlphaVantage, Coinbase, Kaiko).
-
-Add more visualization types
-
-Modify:
-
-src/graph/visual.py
-
-Add sentiment analysis
-
-Create a new node and route conditionally.
-
-🛠 Recommended Improvements
-
-Add unit tests for node outputs
-
-Replace mock data with real price feeds
-
-Add temporal indicators (SMA, EMA, RSI)
-
-Add caching layer for API calls
-
-Add Streamlit dashboard version
-
-If you want, I can generate these files too.
-
-🏁 Final Notes
-
-This project gives you:
-
-Professional LangGraph architecture
-
-Clean routing
-
-Visualization-aware LLM reasoning
-
-Minimal notebook usage
-
-Full modularity for research & production

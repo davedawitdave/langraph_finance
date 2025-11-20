@@ -1,22 +1,23 @@
-
 from typing import TypedDict, Optional, List, Dict, Any
 
 class FinanceState(TypedDict):
     """
-    Defines the central state for the LangGraph workflow, allowing nodes 
-    to pass data and metadata seamlessly.
-    
-    Keys and their purpose:
-    - query: The original user request string.
-    - raw_data: Dictionary of mock price data.
-    - asset: The classification mode: 'btc', 'eth', 'compare', or None (for simple queries).
-    - stats: Dictionary of calculated statistical metrics.
-    - visual: Markdown/text artifact for LLM grounding (used in comparison path).
-    - final_answer: The final synthesized LLM response.
+    Defines the central state for the LangGraph workflow.
     """
     query: str
-    raw_data: Optional[Dict[str, List[Dict[str, Any]]]]
+    
+    # 'btc', 'eth', 'compare', or None
     asset: Optional[str]
-    stats: Optional[Dict[str, Dict[str, float]]]
+    
+    # Raw price data: { "btc": [{"time":..., "price":...}], ... }
+    raw_data: Optional[Dict[str, List[Dict[str, Any]]]]
+    
+    # Statistics: { "btc": {"min_price":..., "volatility_percent":...} }
+    stats: Optional[Dict[str, Any]]
+    
+    # Base64 encoded image string of the plot (if generated)
     visual: Optional[str]
+    
+    # Final LLM response
     final_answer: Optional[str]
+    llm_output: Optional[str]

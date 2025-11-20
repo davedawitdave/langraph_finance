@@ -93,6 +93,22 @@ Output written to:
 - `final_answer`
 
 ---
+# ** src/
+ ├─ memory/
+ │   └─ state.py              # Shared LangGraph state model (FinanceState)
+ │
+ ├─ nodes/
+ │   ├─ fetch_data.py         # Task 1: Intent Detection (Sets asset_mode)
+ │   ├─ transform.py          # Task 2: Statistical Calculation
+ │   └─ visualize.py          # Task 3: Visual Artifact Description & Chart Generation
+ │
+ ├─ graph/
+ │   ├─ model.py              # Task 4: Final LLM Synthesis
+ │   └─ graph_definition.py   # Routers + workflow builder (Defines the Graph)
+ │
+notebooks/
+ └─ finance_workflow.ipynb    # Minimal usage interface
+
 
 # **2. Intelligent Routing Breakdown**
 
@@ -124,29 +140,6 @@ flowchart TD
     C -- compare --> V;
     C -- single_asset --> M;
 
-
-
     V --> M;
 
     M --> E((END));
-
-
----
-
-# **file structure 
-
-src/
- ├─ memory/
- │   └─ state.py              # Shared LangGraph state model (FinanceState)
- │
- ├─ nodes/
- │   ├─ fetch_data.py         # Task 1: Intent Detection (Sets asset_mode)
- │   ├─ transform.py          # Task 2: Statistical Calculation
- │   └─ visualize.py          # Task 3: Visual Artifact Description & Chart Generation
- │
- ├─ graph/
- │   ├─ model.py              # Task 4: Final LLM Synthesis
- │   └─ graph_definition.py   # Routers + workflow builder (Defines the Graph)
- │
-notebooks/
- └─ finance_workflow.ipynb    # Minimal usage interface

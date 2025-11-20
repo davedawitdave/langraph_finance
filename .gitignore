@@ -1,1 +1,7 @@
 app/financial_signal_generator_extended.ipynb
+.venv
+.idea
+_pycache_/
+.env
+.vscode
+.DS_store
